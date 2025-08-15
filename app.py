@@ -187,11 +187,11 @@ def process_documents():
             # 使用临时文件路径调用你的现有函数
             app.logger.info(f"Reading PPTX from: {temp_pptx_path}")
             extracted_text = extract_structured_text_from_pptx(temp_pptx_path)
-            new_data = [
-                        {"交货期": "采购方案-合同主要条款如果采购方案中无该模块，可空着，或者返回“详见招标文件第五章 货物需求一览表及技术规格"},
-                        {"交货地点": "采购方案-合同主要条款如果采购方案中无该模块，可空着，或者返回“详见招标文件第五章 货物需求一览表及技术规格"}
-                        ]
-            extracted_text["采购方案"].extend(new_data)
+            # new_data = [
+            #             {"交货期": "从采购方案-合同主要条款中抽取"},
+            #             {"交货地点": "从采购方案-合同主要条款中抽取"}
+            #             ]
+            # extracted_text["采购方案"].extend(new_data)
 
             
 
