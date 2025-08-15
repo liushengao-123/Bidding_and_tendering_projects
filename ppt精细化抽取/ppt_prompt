@@ -1,0 +1,73 @@
+
+
+
+我现在需要使用python代码读取ppt提取文字，我的第一版是按照全文顺序粗暴的提取了文本，但是用在产品上效果非常差。现在，我需要进一步优化提取ppt的代码，精细化提取内容。提取需求如下:
+	1.上传PPT很有特色，第一行左上方红色加粗的为标题(提取的标题要特别标注为标题)，一行红色横杠下面为内容。
+	2.内容也很有特色，蓝色和黑色为一条，由：分割，蓝色定义为key，黑色定义为value,返回为{key:value}形式。
+	3.相同标题的页提取的{key:value}用一个列表保存。
+	4.第一页、第二页不用提取，先提取第三页到第五页，要有控制提取页码的代码逻辑
+	5.会给一个图片做样例
+	6.结合下面代码做优化
+
+
+def extract_text_from_pptx(file_path):
+    """
+    从PowerPoint (.pptx) 文件中提取所有文本（包括表格内容）。
+
+    参数:
+        file_path (str): PPTX文件的路径。
+
+    返回:
+        str: 提取出的所有文本，用换行符连接。
+    """
+    try:
+        presentation = Presentation(file_path)
+        text_runs = []
+
+        # 遍历每一张幻灯片
+        for slide in presentation.slides:
+            # 遍历幻灯片中的每个形状 (Shape)
+            for shape in slide.shapes:
+                # --- 处理普通文本框 ---
+                # 检查形状是否具有 text 属性并且不为空
+                if hasattr(shape, "text") and shape.text.strip():
+                    text_runs.append(shape.text.strip()) # strip() 去除首尾空白
+                
+                # --- 处理表格内容 ---
+                # 使用 shape_type 明确判断是否为表格
+                elif shape.shape_type == MSO_SHAPE_TYPE.TABLE:
+                    try:
+                        table = shape.table
+                        for row in table.rows:
+                            for cell in row.cells:
+                                # 同样去除单元格文本的首尾空白
+                                cell_text = cell.text.strip()
+                                if cell_text: # 只添加非空单元格文本
+                                   text_runs.append(cell_text)
+                    except Exception as table_e:
+                        print(f"Warning: Error processing table: {table_e}")
+                        # 可以选择跳过或记录错误
+                
+                # --- 处理组合形状 (GroupShape) ---
+                elif shape.shape_type == MSO_SHAPE_TYPE.GROUP: # 使用枚举更清晰
+                    # 递归或循环处理组内形状
+                    for sub_shape in shape.shapes:
+                        # 对子形状同样应用文本和表格的判断逻辑
+                        if hasattr(sub_shape, "text") and sub_shape.text.strip():
+                            text_runs.append(sub_shape.text.strip())
+                        elif sub_shape.shape_type == MSO_SHAPE_TYPE.TABLE:
+                            try:
+                                table = sub_shape.table
+                                for row in table.rows:
+                                    for cell in row.cells:
+                                        cell_text = cell.text.strip()
+                                        if cell_text:
+                                            text_runs.append(cell_text)
+                            except Exception as sub_table_e:
+                                print(f"Warning: Error processing table in group shape: {sub_table_e}")
+
+        return '\n'.join(text_runs)
+
+    except Exception as e:
+        print(f"提取文字时出错: {e}")
+        return ""

@@ -1,0 +1,56 @@
+[{
+  //嵌套:大模型处理 ，servicePeriod存在没有的情况
+  "procurementContent、servicePeriod": "采购内容","servicePeriod": "服务周期、合同期",
+  
+  
+  "projectBudget": "预算金额",
+  
+  //有的有表格，只提取文字(已实现)，此两个字段输出内容同。
+  "sectionDivision": "标段/标包划分、标包、标段划分","InquiryType": "询比类型",
+  
+  
+  "contractSigningMode": "合同签约模式",
+  
+  "inquiryForm": "组织形式",
+  "Max_projectBudget": "最高限价",
+  
+  ##中文名字多个，大模型处理
+  "Bid_Security_Amount": "应答保证金金额、投标保证金",
+  "Evaluators_Number": "评审委员会组成人数、评标委员会组成",
+  
+  ##三个提取一个Selected_Principles
+  "Principles": "中选候选人推荐原则",
+  "SelectedCandidate_number": "中选人确定",
+  "Selected_Principles": "中选原则",
+  
+  
+  ##内容中嵌套，大模型处理
+  "Performance_Bond": "履约保证金",
+  
+  
+  
+  "Special_Circumstances": "公开招标、公开比选",
+  
+  #4个提取一个Post-Evaluation_weight
+  "Comprehensive_weight": "综合实力权重",
+  "Technical_Weight": "技术权重",
+  "Post-Evaluation_weight": "后评估权重",
+  "Price_Weight": "价格权重",
+  
+  
+  
+  
+  "Delivery_Period": "交货期",
+  "Delivery_Location": "交货地点"
+}
+]
+
+
+[{
+    "交货期": "采购方案-合同主要条款
+如果没有采购方案中无该模块，可空着，或者返回“详见招标文件第五章 货物需求一览表及技术规格”"
+        },
+  {
+            "交货地点": "采购方案-合同主要条款
+如果没有采购方案中无该模块，可空着，或者返回“详见招标文件第五章 货物需求一览表及技术规格”"
+        } ]

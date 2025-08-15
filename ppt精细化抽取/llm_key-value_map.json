@@ -1,0 +1,18 @@
+{
+  "procurementContent": "采购内容",
+  "servicePeriod": "采购内容中抽取服务周期或合同期",
+  "projectBudget": "预算金额",
+  "sectionDivision": "标段/标包划分或标包、标段划分",
+  "InquiryType": "标段/标包划分或标包、标段划分",
+  "contractSigningMode": "合同签约模式",
+  "inquiryForm": "组织形式",
+  "Max_projectBudget": "最高限价",
+  "Bid_Security_Amount": "采购及履约过程风险控制中抽取应答保证金或投标保证金",
+  "Evaluators_Number": "评审委员会组成、评标委员会组成",
+  "Selected_Principles": "中选人确定原则",
+  "Performance_Bond": "履约保证金",
+  "Special_Circumstances": "公开招标、公开比选",
+  "Post-Evaluation_weight": "评审办法",
+  "Delivery_Period": "交货期",
+  "Delivery_Location": "交货地点"
+}

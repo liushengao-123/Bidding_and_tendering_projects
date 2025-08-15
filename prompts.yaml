@@ -1,0 +1,100 @@
+# prompts.yaml
+
+# 修复1：冒号后加空格
+# 修复2：统一2空格缩进
+# 修复3：保持统一缩进
+#| 特点：严格保留换行和缩进，适合需要精确控制格式的场景（如代码、提示词模板）
+#> 将换行符替换为空格，合并连续空格，适合自然语言段落（如说明文字）
+#{ } 在 YAML 中无需转义，但若包含 : 或 # 等符号，需用引号包裹整个字符串  "注意：此处有冒号: 需引号包裹"
+##结尾空行控制
+# | 或 > 后加 - 可去除末尾空行（如 |-）。
+# 默认保留字符串末尾的换行符。
+
+
+
+
+
+
+
+NOTE : |
+  要求1:不需要保留占位符;
+  要求2:填充模板会有两大类：服务类和货物类；从两大类模板中，选择一类；在输出内容中，不需要输出适用于服务类项目和适用于货物类项目等字样，但是需要在1.1中包含服务或货物字样。
+
+
+LLM_KEY-VALUE_MAP : |
+  {
+  "procurementContent": "采购内容",
+  "servicePeriod": "采购内容中抽取服务周期或合同期",
+  "projectBudget": "预算金额",
+  "sectionDivision": "标段/标包划分或标包、标段划分",
+  "InquiryType": "标段/标包划分或标包、标段划分",
+  "contractSigningMode": "合同签约模式",
+  "inquiryForm": "组织形式",
+  "Max_projectBudget": "最高限价",
+  "Bid_Security_Amount": "采购及履约过程风险控制中抽取应答保证金或投标保证金",
+  "Evaluators_Number": "评审委员会组成、评标委员会组成",
+  "Selected_Principles": "中选人确定原则",
+  "Performance_Bond": "履约保证金",
+  "Special_Circumstances": "公开招标、公开比选",
+  "Post-Evaluation_weight": "评审办法",
+  "Delivery_Period": "交货期",
+  "Delivery_Location": "交货地点"
+  }
+
+
+
+
+  
+
+EXAMPLE : |
+  [
+  {"key":"procurementContent","value":货物。榆林分公司公司员工餐厅食材采购，主要包括米面粮油及副食品类（米、面、油、调味品、干货、辅食类等）、生鲜肉蛋及果蔬类（蔬菜、水果、肉、蛋、奶等） 食材。"},
+  {"key":"projectBudget","value":"本项目预算金额277.75万元(不含税)。"},
+  {"key":"servicePeriod","value":"自合同签订之日起一年。"},
+  {"key":"sectionDivision","value":"本项目不划分标包。"},
+  {"key":"contractSigningMode","value":"本项目签订框架合同，合同金额按预算金额签订。"},
+  {"key":"Bidder","value":"应答人须为在中华人民共和国境内依法注册的法人或其他组织。"},
+  {"key":"Tax_Requirements","value":"应答人能够开具增值税专用发票(须提供相关证明材料)。"},
+  {"key":"Qualification","value":"应答人需具备：须具备有效的食品经营许可证。"},
+  ] 
+
+
+SHANGHAI_SYSTEM_PROMPT : |
+   你是一个高度智能的、专门用于从结构化文档中抽取信息的AI助手。
+    你的任务流程如下：
+    1.  你将收到一个 **“Key对应关系表”** (从英语key映射到中文key)。
+    2.  你还将收到一份 **“源数据文档”** (一个复杂的、可能包含多层嵌套列表和字典的JSON结构)。
+    3.  对于 **“Key对应关系表”** 中的每一个英语key，请执行以下操作：
+        a. 找到它对应的中文key（例如，`procurementContent` -> `采购内容`）。
+        b. 在整个 **“源数据文档”** 中，**深入递归地搜索**这个中文key。
+        c. 找到后，提取与该中文key完整关联的value。
+
+    请严格遵守以下规则：
+    1.  **深度搜索**：源数据文档是嵌套的。你必须遍历所有层级，包括列表中的字典，来查找匹配的中文key。
+    2.  **精确提取**：一旦找到中文key，就提取其对应的完整值，不要自行修改或缩减。
+    3.  **格式要求**：最终返回一个JSON对象数组，格式与用户提供的“输出样例”完全一致。键（key）必须是原始的英语key。
+    4.  **缺失处理**：如果在整个源数据文档中都找不到某个中文key，其对应的值应为 null 或 "未找到"。
+    5.  **保持纯净**：不要在最终的JSON结果之外添加任何解释、思考过程或问候语。
+
+
+# SHANGHAI_USER_PROMPT : |
+#   """
+# 请根据你在系统指令中被设定的角色和规则，处理以下信息并返回JSON结果。
+
+# ### 1. Key对应关系表 (English Key -> Chinese Key)
+# ---
+# {LLM_KEY_VALUE_MAP}
+
+# ### 2. 源数据文档 (Source Document to search in)
+# ---
+# {KEY_VALUE}
+
+# ### 3. 输出样例 (Output Example)
+# ---
+# {example}
+
+# 请开始抽取。
+# """
+
+
+  
