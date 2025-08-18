@@ -125,8 +125,8 @@ def extract_structured_text_from_pptx(file_path, start_page=None, end_page=None)
 if __name__ == "__main__":
     # 请将路径替换为您的实际文件路径
     # pptx_file_path = 'E:/project/ppt精细化抽取/关于榆林分公司2025年-2026年员工食堂食材采购项目采购方案的汇报.pptx'
-    #pptx_file_path = 'E:/project/ppt精细化抽取/关于陕西移动2023-2025年风冷型变频氟泵列间机.pptx'
-    pptx_file_path = 'E:\project\ppt精细化抽取\关于咸阳分公司2023-2024年度职工餐厅食材采购.pptx'
+    pptx_file_path = 'E:\project\优化版本1\ppt精细化抽取\关于咸阳分公司2023-2024年度职工餐厅食材采购.pptx'
+    #pptx_file_path = 'E:\project\ppt精细化抽取\关于咸阳分公司2023-2024年度职工餐厅食材采购.pptx'
     base_name = os.path.basename(pptx_file_path)
     file_name_without_ext = os.path.splitext(base_name)[0]
     

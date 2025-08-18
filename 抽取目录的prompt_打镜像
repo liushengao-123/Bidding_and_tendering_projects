@@ -1,0 +1,146 @@
+
+我需要将aff_contents_Extraction.py文件打镜像为flask服务，通过curl调用,代码在下文展示，我的需求是打docker镜像，构建服务，参考下文Dockerfile文件，编写Dockerfile文件，并给出打镜像，然后使用docker-compose.yml运行服务。
+要求：
+filename通过curl路径外部传入
+生成的内容保存为txt文档。
+
+
+
+# -*- coding: utf-8 -*-
+
+import yaml
+from pathlib import Path
+import os
+import requests
+
+import requests
+import docx
+from docx_read import read_docx_file
+
+
+# 读取指定的招标文件
+filename = "E:\project\通信工程建设项目货物集中招标文件范_2.docx"  # 注意文件扩展名是.docx
+#filename ="E:\project\code_delopy\询比范本整理\询比文件（服务类_资格后审-最低价法）20250805.docx"
+#filename ="E:\project\code_delopy\询比范本整理\询比文件（服务类——资格后审-综合评估法）20250804.docx"
+#filename ="E:\project\code_delopy\询比范本整理\询比文件（货物类_资格后审-最低价法）20250805.docx"
+#filename ="E:\project\code_delopy\询比范本整理\询比文件（货物类——资格后审-综合评估法）20250805.docx"
+
+content = read_docx_file(filename)
+
+if content:
+    print("##############读取成功##################")
+    # print("文件内容:")
+    print(content)
+    print("##############读取成功##################")
+else:
+    print("未能成功读取文件内容。")
+
+
+
+class PromptManager:
+    def __init__(self, file_path="E:\project\code_ppt\prompts.yaml"):
+        self.prompts = yaml.safe_load(Path(file_path).read_text(encoding='utf-8'))
+    
+    def get_prompt(self, key):
+        return self.prompts[key]
+
+pm = PromptManager()
+CONTEXT_CHAT_APPFIX = pm.get_prompt("CONTEXT_CHAT_APPFIX")
+# APPFIX_EXAMPLE_2 = pm.get_prompt("APPFIX_EXAMPLE_2")
+APPFIX_EXAMPLE = pm.get_prompt("APPFIX_EXAMPLE")
+
+access_token="sk-uUTtsplQO7yzLVQH40682353C3B44a9bB417045f9321B563"
+# MODEL_API_URL="http://172.16.81.180:3000/v1/chat/completions"
+# MODEL_NAME="DeepSeek"
+MODEL_API_URL="http://140.210.92.250:25081/v1/chat/completions"
+MODEL_NAME="Qwen3-30B-A3B-Instruct-2507"
+TIMEOUT=30000
+DEFAULT_RESPONSE = "对不起，纠正服务暂时不可用。请稍后再试。"
+
+def model_chat(original_question):
+    """
+    使用大语言模型做场景识别
+
+    参数:
+    - original_question (str): 原始问题字符串。
+    - example_list (list): 特例场景映射表，用于严格对应场景
+    - informal_mapping_list (list): 口语化表达场景映射表，用于将口语化说法转换为规范的场景
+    返回:
+    - 最佳猜测的组织机构名称 (str)
+    - HTTP状态码 (int)
+    """ 
+    data = {
+        "model": MODEL_NAME,
+        "messages": [
+            {"role": "system",
+             "content": "你是一个目录抽取助手,需要从文档中抽取出目录"},
+            {"role": "user",
+            "content": f'根据要求{CONTEXT_CHAT_APPFIX}，从{original_question}中抽取出目录。样例如下:{APPFIX_EXAMPLE}'}
+            #"content": f'根据要求{CONTEXT_CHAT_APPFIX}，从{content}中抽取出目录。'}
+        ],
+        "temperature": 0.1,
+        "top_k": 2,
+        "top_p": 0.75
+    }
+
+
+   
+       
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    # 调用大语言模型的 API，设置超时时间
+    response = requests.post(MODEL_API_URL, json=data, headers=headers, timeout=TIMEOUT)
+   
+    # 检查响应状态
+    if response.status_code != 200:
+        raise Exception(f"Model API returned status code {response.status_code}: {response.text}")
+    # 解析响应数据
+    response_data = response.json()
+    #best_guess = response_data.get('choices', [{}])[0].get('message', {}).get('content', DEFAULT_RESPONSE)
+    #print(best_guess)
+
+    try:
+        best_guess = response_data.get('choices', [{}])[0].get('message', {}).get('content', DEFAULT_RESPONSE)
+    except (KeyError, IndexError) as e:
+        return {f"error": "Error processing model response{e}"}, 500
+    
+    return {"result": {"code": "200", "data": best_guess}}
+    #return best_guess, 200
+
+
+result=model_chat(content)
+print(result)
+
+
+
+# 使用一个轻量级的 Python 官方镜像作为基础
+FROM python:3.10-slim
+
+# 设置环境变量，防止 Python 写入 .pyc 文件
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# 【注意】我们已经删除了安装curl的步骤，因为服务本身不需要它
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制依赖文件
+COPY app/requirements.txt .
+
+# 安装 Python 依赖，使用清华镜像源加速
+RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 创建用于存放输出文件的目录
+RUN mkdir /app/output
+
+# 复制所有应用代码到工作目录
+COPY ./app/ .
+
+# 暴露服务将要监听的端口
+EXPOSE 54469
+
+# 容器启动时执行的命令
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:54469", "--timeout", "300000000", "app:app"]
