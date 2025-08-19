@@ -14,15 +14,15 @@ import tempfile
 import concurrent.futures
 
 # 假设 read_ppt.py 和 prompts.yaml 与 app.py 在同一目录下
-from ppt2context_total import extract_structured_text_from_pptx
-
+from ppt2context_total import extract_structured_text_from_pptx2
+from read_ppt import extract_structured_text_from_pptx
 # --- 全局配置 ---
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "sk-mjgunayzdoeaycpmhedpkvppmvhgspatesqafaiuelsomwkr")
-MODEL_API_URL = os.getenv("MODEL_API_URL", "http://140.210.92.250:25081/v1/chat/completions")
+#ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "sk-mjgunayzdoeaycpmhedpkvppmvhgspatesqafaiuelsomwkr")
+#MODEL_API_URL = os.getenv("MODEL_API_URL", "http://140.210.92.250:25081/v1/chat/completions")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen3-30B-A3B-Instruct-2507")
-#ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "sk-rirdsmibduedlwfaipdntinnqafzygcjgugtujnieuixggeq")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "sk-rirdsmibduedlwfaipdntinnqafzygcjgugtujnieuixggeq")
 MODEL_API_URL = os.getenv("MODEL_API_URL", "https://api.siliconflow.cn/v1/chat/completions")
-MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen3-30B-A3B-Thinking-2507")
+#MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen3-30B-A3B-Thinking-2507")
 
 TIMEOUT = int(os.getenv("TIMEOUT", "300000"))
 DEFAULT_RESPONSE = "对不起，服务暂时不可用。请稍后再试。"
@@ -49,7 +49,7 @@ if __name__ != '__main__':
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
 
-pm = PromptManager()
+pm = PromptManager("E:\project\优化版本1\\app_totall\prompts.yaml")
 EXAMPLE = pm.get_prompt("EXAMPLE")
 NOTE = pm.get_prompt("NOTE")
 LLM_KEY_VALUE_MAP = pm.get_prompt("LLM_KEY-VALUE_MAP")
@@ -63,13 +63,13 @@ SHANGHAI_SYSTEM_PROMPT_2 = pm.get_prompt("SHANGHAI_SYSTEM_PROMPT_2")
 # vvvvvvvvvvvvvvvv   这里是主要修改的函数   vvvvvvvvvvvvvvvvvv
 # ==============================================================================
 
-def call_model_api(original_question, doc_context):
+def call_model_api(original_question,original_question2 ,doc_context):
     """
     并发调用大语言模型API的核心函数，合并结果后返回。
     """
     # 将原始数据转换为格式化的JSON字符串，用于prompt
     key_value_str = json.dumps(original_question, indent=2, ensure_ascii=False)
-    
+    key_value_str2 = json.dumps(original_question2, indent=2, ensure_ascii=False)
     # 准备通用的User Prompt
     shanghai_user_prompt = f"""
 请根据你在系统指令中被设定的角色和规则，处理以下信息并返回JSON结果。
@@ -81,6 +81,23 @@ def call_model_api(original_question, doc_context):
 ### 2. 源数据文档 (Source Document to search in)
 ---
 {key_value_str}
+
+### 3. 输出样例 (Output Example)
+---
+{EXAMPLE}
+
+请开始抽取。
+"""
+    shanghai_user_prompt_2 = f"""
+请根据你在系统指令中被设定的角色和规则，处理以下信息并返回JSON结果。
+
+### 1. Key对应关系表 (English Key -> Chinese Key)
+---
+{LLM_KEY_VALUE_MAP_2}
+
+### 2. 源数据文档 (Source Document to search in)
+---
+{key_value_str2}
 
 ### 3. 输出样例 (Output Example)
 ---
@@ -104,7 +121,7 @@ def call_model_api(original_question, doc_context):
             "messages": [
                 {"role": "system", "content": f"{SHANGHAI_SYSTEM_PROMPT_2}"},
                 # 注意：这里我们复用相同的user prompt，因为源数据是一样的
-                {"role": "user", "content": f'{shanghai_user_prompt}'} 
+                {"role": "user", "content": f'{shanghai_user_prompt_2}'} 
             ],
             "request_id": "Task 2" # 添加一个ID用于日志跟踪
         }
@@ -204,14 +221,14 @@ def process_documents():
         try:
             app.logger.info(f"Extracting text from PPTX: {temp_pptx_path}")
             extracted_text = extract_structured_text_from_pptx(temp_pptx_path)
-
+            extracted_text2= extract_structured_text_from_pptx2(temp_pptx_path)
             formatted_json = json.dumps(extracted_text, ensure_ascii=False, indent=4)
             app.logger.info("Extracted text from PPTX successfully.")
             # print(formatted_json) # 在生产环境中可以注释掉这个print
 
             # 调用经过改造的、支持并发的API函数
             # doc_context 变量在您的代码中未被使用，因此传入空字符串
-            result_content = call_model_api(extracted_text, "")
+            result_content = call_model_api(extracted_text,extracted_text2, "")
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_filename = f"result_{timestamp}.json" # 建议保存为.json

@@ -19,7 +19,7 @@ def _parse_table_shape(shape):
     return []
 
 # --- 主函数 ---
-def extract_structured_text_from_pptx(file_path, start_page=4, end_page=None):
+def extract_structured_text_from_pptx2(file_path, start_page=4, end_page=None):
     """
     V-Final-Fix-5: 采用清晰的状态机逻辑，最终解决所有内容关联问题。
     """

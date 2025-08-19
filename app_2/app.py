@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename # 导入 secure_filename
 import tempfile # 用于创建临时文件
 # 假设 read_ppt.py 和 prompts.yaml 与 app.py 在同一目录下
 from ppt2context_total import extract_structured_text_from_pptx
-
+from read_ppt import extract_structured_text_from_pptx2
 # --- 全局配置 ---
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "sk-uUTtsplQO7yzLVQH40682353C3B44a9bB417045f9321B563")
 MODEL_API_URL = os.getenv("MODEL_API_URL", "http://140.210.92.250:25081/v1/chat/completions")
@@ -191,6 +191,7 @@ def process_documents():
             # 使用临时文件路径调用你的现有函数
             app.logger.info(f"Reading PPTX from: {temp_pptx_path}")
             extracted_text = extract_structured_text_from_pptx(temp_pptx_path)
+            extracted_text_2 = extract_structured_text_from_pptx2(temp_pptx_path)
             # new_data = [
             #             {"交货期": "从采购方案-合同主要条款中抽取"},
             #             {"交货地点": "从采购方案-合同主要条款中抽取"}
