@@ -1,4 +1,32 @@
-# -*- coding: utf-8 -*-
+我现在有一个新需求，我先描述总体目标，再给予资料详细。
+1.总体目标
+因为业务方感觉模型总体输出的方式，花费时间太多，现在需要将模型输出改为流示输出。
+2.具体阐述
+我的输出结果样式如下：
+[
+    {
+        "key": "procurementContent",
+        "value": "货物（含安装）。 本次采购内容为风冷型变频氟泵列间机房专用空调，预估采购规模约148台，技术要求详见技术规范书。"
+    },
+    {
+        "key": "servicePeriod",
+        "value": "采购周期2年。"
+    },
+    {
+        "key": "projectBudget",
+        "value": "本项目预算金额965万元(不含税)。"
+    },
+    {
+        "key": "sectionDivision",
+        "value": "本项目不划分标包，划分2个份额。"
+    },
+    {
+        "key": "InquiryType",
+        "value": "本项目不划分标包，划分2个份额。"
+    }]
+
+我的主体代码如下:
+    # -*- coding: utf-8 -*-
 
 import yaml
 from pathlib import Path
@@ -26,7 +54,7 @@ MODEL_API_URL = os.getenv("MODEL_API_URL", "https://api.siliconflow.cn/v1/chat/c
 
 TIMEOUT = int(os.getenv("TIMEOUT", "300000"))
 DEFAULT_RESPONSE = "对不起，服务暂时不可用。请稍后再试。"
-OUTPUT_DIR = Path("/app/output")
+OUTPUT_DIR = Path("/data/shanxi_lsa_conda/app_totall/output")
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -49,7 +77,7 @@ if __name__ != '__main__':
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
 
-pm = PromptManager("E:\project\优化版本1\\app_totall\prompts.yaml")
+pm = PromptManager("/data/shanxi_lsa_conda/app_totall/prompts.yaml")
 EXAMPLE = pm.get_prompt("EXAMPLE")
 NOTE = pm.get_prompt("NOTE")
 LLM_KEY_VALUE_MAP = pm.get_prompt("LLM_KEY-VALUE_MAP")
@@ -195,7 +223,7 @@ def call_model_api(original_question,original_question2 ,doc_context):
         try:
             # 尝试将结果字符串解析为JSON对象
             data = json.loads(result_str)
-            
+            print(data)
             # 检查解析出的数据是否是列表类型
             if isinstance(data, list):
                 # 如果是列表，则将其所有元素添加到我们的主列表中
@@ -289,4 +317,7 @@ def process_documents():
             return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8894, debug=True)
+    app.run(host='0.0.0.0', port=8893, debug=True)
+
+请将输出给业务方的方式改为：
+        
